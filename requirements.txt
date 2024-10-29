@@ -1,0 +1,5 @@
+chromadb
+polars
+openai
+more_itertools
+sentence_transformers
