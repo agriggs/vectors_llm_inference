@@ -35,6 +35,10 @@ REQUESTS_CA_BUNDLE
 SSL_CERT_FILE
 ```
 
+## Source data
+
+Car reviews source data is a bunch of CSV in [data/archive](./data/archive/) folder 
+
 ## Create the RAG vectors
 ```
 python create_car_review_collection.py
