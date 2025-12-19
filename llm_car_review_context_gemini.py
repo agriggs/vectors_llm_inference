@@ -1,4 +1,3 @@
-import json
 import os
 
 import chromadb
@@ -13,13 +12,6 @@ DATA_PATH = "data/archive/*"
 CHROMA_PATH = "car_review_embeddings"
 EMBEDDING_FUNC_NAME = "multi-qa-MiniLM-L6-cos-v1"
 COLLECTION_NAME = "car_reviews"
-
-# Use an env var instead
-
-# with open("config.json", "r") as json_file:
-#     config_data = json.load(json_file)
-
-# genai.configure(api_key=GOOGLE_API_KEY)
 
 client = chromadb.PersistentClient(CHROMA_PATH)
 embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(

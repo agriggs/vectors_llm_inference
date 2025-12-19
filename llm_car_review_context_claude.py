@@ -3,7 +3,7 @@ import os
 import chromadb
 from chromadb.utils import embedding_functions
 
-from openai import OpenAI
+from anthropic import Anthropic
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -44,21 +44,20 @@ print("Good reviews: ")
 print(reviews_str)
 print("###########################################")
 
-client = OpenAI()
-model = "gpt-3.5-turbo"
+client = Anthropic()
+model = "claude-sonnet-4-5"
 
-good_reviews_analysis = client.chat.completions.create(
+good_reviews_analysis = client.messages.create(
     model=model,
+    system=context.format(reviews_str),
+    max_tokens=1024,
     messages=[
-        {"role": "system", "content": context.format(reviews_str)},
-        {"role": "user", "content": question},
-    ],
-    temperature=0,
-    n=1
+       {"role": "user", "content": question} 
+    ]
 )
 
-print(f"OpenAI generated summary with {model} of good reviews: ")
-print(good_reviews_analysis.choices[0].message.content)
+print(f"Claude generated summary with {model} of good reviews: ")
+print(good_reviews_analysis.content[0].text)
 print("###########################################")
 
 context = """
@@ -83,17 +82,15 @@ print("Worst reviews: ")
 print(poor_reviews["documents"][0][0])
 print("###########################################")
 
-poor_review_analysis = client.chat.completions.create(
+poor_review_analysis = client.messages.create(
     model=model,
     system=context.format(reviews_str),
+    max_tokens=1024,
     messages=[
-        {"role": "system", "content": context.format(reviews_str)},
-        {"role": "user", "content": question},
-    ],
-    temperature=0,
-    n=1,
+       {"role": "user", "content": question} 
+    ]
 )
 
-print(f"OpenAI generated summary with {model} of the single worst review: ")
-print(poor_review_analysis.choices[0].message.content)
+print(f"Claude generated summary with {model} of the single worst review: ")
+print(poor_review_analysis.content[0].text)
 print("###########################################")
