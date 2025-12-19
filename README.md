@@ -29,6 +29,12 @@ Install the Python packages to the virtual environment
 pip install -r .\requirements.txt
 ```
 
+If running behind a TLS intercept (on corporate network), may need to set these environment variables for Python libs: requests, httpx
+```
+REQUESTS_CA_BUNDLE
+SSL_CERT_FILE
+```
+
 ## Create the RAG vectors
 ```
 python create_car_review_collection.py

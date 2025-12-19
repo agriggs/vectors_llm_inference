@@ -65,21 +65,16 @@ def query_poor_reviews(collection, question, n_results=5):
         where={"Rating": {"$lte": 3}},
     )
 
-
-def analyze_with_openai(reviews_str, question, model="gpt-3.5-turbo"):
+def analyze_with_openai(context, question, model="gpt-3.5-turbo"):
     if not _has_openai:
         raise RuntimeError("OpenAI SDK not available. Install the official OpenAI Python SDK.")
     client = OpenAI()
-    context = """
- You are a customer success employee at a large
-  car dealership. Use the following car reviews
-  to answer questions: {}
- """
+    
 
     resp = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": context.format(reviews_str)},
+            {"role": "system", "content": context},
             {"role": "user", "content": question},
         ],
         temperature=0,
@@ -88,19 +83,14 @@ def analyze_with_openai(reviews_str, question, model="gpt-3.5-turbo"):
     return resp.choices[0].message.content
 
 
-def analyze_with_gemini(reviews_str, question, model="gemini-2.5-flash"):
+def analyze_with_gemini(context, question, model="gemini-2.5-flash"):
     if not _has_gemini:
         raise RuntimeError("Gemini (google-genai) SDK not available. Install google-genai.")
     client = genai.Client()
-    context = """
- You are a customer success employee at a large
-  car dealership. Use the following car reviews
-  to answer questions: {}
- """
 
     resp = client.models.generate_content(
         model=model,
-        contents=context.format(reviews_str),
+        contents=context,
         config=genai_types.GenerateContentConfig(
             system_instruction=question,
             temperature=0,
@@ -110,19 +100,14 @@ def analyze_with_gemini(reviews_str, question, model="gemini-2.5-flash"):
     return getattr(resp, "text", None) or str(resp)
 
 
-def analyze_with_claude(reviews_str, question, model="claude-sonnet-4-5"):
+def analyze_with_claude(context, question, model="claude-sonnet-4-5"):
     if not _has_claude:
         raise RuntimeError("Anthropic SDK not available. Install the anthropic package.")
     client = Anthropic()
-    context = """
- You are a customer success employee at a large
-  car dealership. Use the following car reviews
-  to answer questions: {}
- """
-
+    
     resp = client.messages.create(
         model=model,
-        system=context.format(reviews_str),
+        system=context,
         max_tokens=1024,
         messages=[{"role": "user", "content": question}],
     )
@@ -159,15 +144,24 @@ def run(provider: str):
     print(poor["documents"][0][0][:1000])
     print("###########################################")
 
+    ai_context = """
+        You are a customer success employee at a large
+        car dealership. Use the following car reviews
+        to answer questions: {}
+    """
+
+    ai_context_good_reviews = ai_context.format(reviews_str)
+    ai_context_poor_reviews = ai_context.format(poor_reviews_str)
+    
     if provider == "openai":
-        summary = analyze_with_openai(reviews_str, pos_question)
-        worst = analyze_with_openai(poor_reviews_str, poor_question)
+        summary = analyze_with_openai(ai_context_good_reviews, pos_question)
+        worst = analyze_with_openai(ai_context_poor_reviews, poor_question)
     elif provider == "gemini":
-        summary = analyze_with_gemini(reviews_str, pos_question)
-        worst = analyze_with_gemini(poor_reviews_str, poor_question)
+        summary = analyze_with_gemini(ai_context_good_reviews, pos_question)
+        worst = analyze_with_gemini(ai_context_poor_reviews, poor_question)
     elif provider == "claude":
-        summary = analyze_with_claude(reviews_str, pos_question)
-        worst = analyze_with_claude(poor_reviews_str, poor_question)
+        summary = analyze_with_claude(ai_context_good_reviews, pos_question)
+        worst = analyze_with_claude(ai_context_poor_reviews, poor_question)
     else:
         raise ValueError("Unknown provider: choose one of openai|gemini|claude")
 
